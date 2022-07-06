@@ -6,6 +6,9 @@ on:
       - '**/**.bicep'
       - '**/cdenvironment.yml'
       - '**/cdapps.yml'
+      - '**/networking.yml'
+      - '**/networking.bicep'     
+      - '**/ResolveNetworkingResources.ps1'
       - 'docs/**'
 
 jobs:
@@ -61,4 +64,4 @@ jobs:
 
       - name: Publish and build
         run: |
-          .\LocalBuild.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }} -Prefix ${{ secrets.PREFIX }}
+          .\LocalBuild.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }}

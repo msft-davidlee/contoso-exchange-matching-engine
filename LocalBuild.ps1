@@ -1,7 +1,7 @@
-param([string]$BuildEnvironment, [string]$Prefix)
+param([string]$BuildEnvironment)
 
 function GetResource([string]$stackId, [string]$stackEnvironment) {
-    $platformRes = (az resource list --tag stack-id=$stackName | ConvertFrom-Json)
+    $platformRes = (az resource list --tag stack-name=$stackName | ConvertFrom-Json)
     if (!$platformRes) {
         throw "Unable to find eligible $stackId resource!"
     }
@@ -19,8 +19,15 @@ function GetResource([string]$stackId, [string]$stackEnvironment) {
 
 $ErrorActionPreference = "Stop"
 
+$groups = az group list --tag stack-environment=$BUILD_ENV | ConvertFrom-Json
+$sharedResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-shared-services' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$sharedResources = az resource list --resource-group $sharedResourceGroup | ConvertFrom-Json
+
+$matchingEngineResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-matchingengine' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$matchingEngineResources = az resource list --resource-group $matchingEngineResourceGroup | ConvertFrom-Json
+
 # Section: Self discover Switch IO
-$switches = az resource list --resource-type "Microsoft.Solutions/applications" | ConvertFrom-Json
+$switches = az resource list --resource-type "Microsoft.Solutions/applications" --resource-group $matchingEngineResourceGroup | ConvertFrom-Json
 if (!$switches -or $switches.Length -eq 0) {
     Write-Host "No third party appliance found"
     return
@@ -37,19 +44,10 @@ $MulticastIPAddressValue = "239.5.69.4"
 $MulticastPortValue = "9999"
 $SwitchIOName = $foundSwitch.name
 
-# Get all demo resources 
-try {
-    $foundResources = GetResource -stackId "demo" -stackEnvironment $BuildEnvironment    
-}
-catch {
-    Write-Host "Skip publish apps to storage account"
-    return
-}
-
 # Section: Self discover Storage Account
-$foundStorageResource = ($foundResources | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" })[0]
+$foundStorageResource = ($sharedResources | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" })[0]
 $AccountName = $foundStorageResource.name
-$ContainerName = "tmx"
+$ContainerName = "apps"
 $end = (Get-Date).AddDays(1).ToString("yyyy-MM-dd")
 $start = (Get-Date).ToString("yyyy-MM-dd")
 
@@ -60,7 +58,7 @@ $StorageAccountReadSas = "https://$AccountName.blob.core.windows.net/$ContainerN
 $StorageAccountWriteSas = "https://$AccountName.blob.core.windows.net/$ContainerName`?$AccountWriteSas"
 
 #Section: Self discover App Insights
-$foundInsightsResource = ($foundResources | Where-Object { $_.type -eq "microsoft.insights/components" })[0]
+$foundInsightsResource = ($matchingEngineResources | Where-Object { $_.type -eq "microsoft.insights/components" })[0]
 $insightsResource = az resource show --name $foundInsightsResource.name --resource-group $foundInsightsResource.resourceGroup --resource-type "microsoft.insights/components" | ConvertFrom-Json
 $InstrumentationKey = $insightsResource.properties.InstrumentationKey
 
@@ -71,7 +69,7 @@ if (!(Test-Path $FolderName)) {
 }
 
 #Section: Self discover trading platform
-$nic = ($foundResources | Where-Object { $_.type -eq "Microsoft.Network/networkInterfaces" -and $_.name.Contains("$Prefix-trd1-appsvccs") })[0]
+$nic = ($matchingEngineResources | Where-Object { $_.type -eq "Microsoft.Network/networkInterfaces" -and $_.name.Contains("$Prefix-trd1-appsvccs") })[0]
 
 $nicCfg = (az network nic ip-config show -g $nic.resourceGroup -n ipconfig1 --nic-name $nic.name | ConvertFrom-Json)
 $priIP = $nicCfg.privateIpAddress
@@ -112,12 +110,12 @@ if ($InstrumentationKey) {
 
     $content = Get-Content .\$FolderName\client1\appsettings.json
     $content = $content.Replace("00000000-0000-0000-0000-000000000000", $InstrumentationKey)
-    $content = $content.Replace("TMXDemoClientName", "ClientSeller")
+    $content = $content.Replace("DemoClientName", "ClientSeller")
     Set-Content -Value $content -Path .\$FolderName\client1\appsettings.json
 
     $content = Get-Content .\$FolderName\client2\appsettings.json
     $content = $content.Replace("00000000-0000-0000-0000-000000000000", $InstrumentationKey)
-    $content = $content.Replace("TMXDemoClientName", "ClientBuyer")
+    $content = $content.Replace("DemoClientName", "ClientBuyer")
     Set-Content -Value $content -Path .\$FolderName\client2\appsettings.json
 
     $content = Get-Content .\$FolderName\fixmsgprocessor\appsettings.json
@@ -190,7 +188,7 @@ if ($StorageAccountWriteSas -and $StorageAccountReadSas) {
         Write-Host "Processing $file"
 
         Compress-Archive $file\* -DestinationPath "$file.zip" -Force
-        $sas = $StorageAccountWriteSas.Replace("tmx?", "tmx/$file.zip?")
+        $sas = $StorageAccountWriteSas.Replace("apps?", "apps/$file.zip?")
         .\azcopy.exe cp "$file.zip" $sas --overwrite true
         if ($LastExitCode -ne 0) {
             throw "An error has occured. Copy failed for $file.zip. $sas"
@@ -202,7 +200,7 @@ if ($StorageAccountWriteSas -and $StorageAccountReadSas) {
     $content = $content.Replace("[SwitchIOName]", $SwitchIOName)
     Set-Content -Path "AppInstall.ps1" -Value $content
 
-    $sas = $StorageAccountWriteSas.Replace("tmx?", "tmx/AppInstall.ps1?")
+    $sas = $StorageAccountWriteSas.Replace("apps?", "apps/AppInstall.ps1?")
     .\azcopy.exe cp "AppInstall.ps1" $sas --overwrite true
     if ($LastExitCode -ne 0) {
         throw "An error has occured. Copy failed for AppInstall.ps1. $sas"
