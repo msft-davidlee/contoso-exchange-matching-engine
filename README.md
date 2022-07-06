@@ -6,7 +6,7 @@ The information contained in this README.md file and any accompanying materials 
 ![CD Apps workflow](https://github.com/msft-davidlee/contoso-exchange-matching-engine/actions/workflows/cdapps.yml/badge.svg)
 
 # Introduction
-This repo contains a Exchange Matching engine demo on New Single Order made via FIX protocol with multicast broadcast to Market Data Recipients running on Azure VMs (Infrastruture-as-a-service). It is build to suit our specific use case today around New Single Order (buy and sell) via FIX 4.4 protocol and there are 2 market data recipients are listening for the executed order over UDP multicast. The architecture of the demo is NOT representative of how an Exchange Matching engine should be designed and run on Azure and does not speak to how we would recommand a cloud native architecture. Instead, it is designed to speak to key topics of DevOps CI/CD practices, and Operational monitoring & reporting, which are aligned with specific Azure and GitHub services.
+This repo contains an Exchange Matching engine demo on New Single Order made via FIX 4.4 protocol with UDP multicast broadcast to Market Data Recipients running on Azure VMs (Infrastruture-as-a-service). The architecture here is NOT representative of how an Exchange Matching engine should be designed and run on Azure and does not speak to how we would recommand a cloud native architecture including network configuration. Any metrics shown in the demo should not be considered as how an Exchange would perform in terms of latency. Instead, it is designed to speak to key topics around DevOps CI/CD practices, and Operational monitoring & reporting, which are aligned with specific Azure and GitHub services.
 
 ![Architecture](/docs/TradingPlatformDemo.png)
 
