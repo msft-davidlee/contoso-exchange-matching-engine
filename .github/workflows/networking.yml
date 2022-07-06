@@ -1,3 +1,4 @@
+name: Deploy Networking resources
 on: 
   push:
     paths:

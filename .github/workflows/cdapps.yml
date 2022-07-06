@@ -10,7 +10,7 @@ jobs:
       - id: setup
         name: Setup Environment Setp
         run: |
-          if ("${{ github.event.type }}" -eq "push") {
+          if ("${{ github.event_name }}" -eq "push") {
             echo "::set-output name=skip::true"   
             return
           }
