@@ -124,7 +124,7 @@ if ($InstrumentationKey) {
 
     $content = Get-Content .\$FolderName\marketdata1\appsettings.json
     $content = $content.Replace("00000000-0000-0000-0000-000000000000", $InstrumentationKey)
-    $content = $content.Replace("TMXDemoMarketDataRecipientClientName", "MarketDataRecipientClient1")
+    $content = $content.Replace("DemoMarketDataRecipientClientName", "MarketDataRecipientClient1")
 
     if ($MulticastIPAddressValue) {        
         $content = $content.Replace("MulticastIPAddressValue", $MulticastIPAddressValue)
@@ -138,7 +138,7 @@ if ($InstrumentationKey) {
 
     $content = Get-Content .\$FolderName\marketdata2\appsettings.json
     $content = $content.Replace("00000000-0000-0000-0000-000000000000", $InstrumentationKey)
-    $content = $content.Replace("TMXDemoMarketDataRecipientClientName", "MarketDataRecipientClient2")
+    $content = $content.Replace("DemoMarketDataRecipientClientName", "MarketDataRecipientClient2")
 
     if ($MulticastIPAddressValue) {        
         $content = $content.Replace("MulticastIPAddressValue", $MulticastIPAddressValue)

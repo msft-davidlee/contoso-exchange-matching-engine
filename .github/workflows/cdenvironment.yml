@@ -3,7 +3,10 @@ on:
   workflow_dispatch:
   push:
     paths-ignore:
-      - 'README.md'  
+      - 'README.md'
+env:
+  STACK_NAME_TAG: 'cntex01'
+      
 jobs:
   setup:
     name: Choose Secrets Environment Job
@@ -50,7 +53,7 @@ jobs:
         name: Resolve shared resources
         working-directory: .\deployment
         run: |
-          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }}
+          .\ResolveSharedResources.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }}
 
       - id: deploy
         name: Build
@@ -58,5 +61,5 @@ jobs:
         with:
           deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
           resourceGroupName: ${{ steps.resolve-shared-resources.outputs.ResourceGroup }}
-          parameters: adminPassword=${{ secrets.VM_PASSWORD }} appEnvironment=${{ needs.setup.outputs.build_env }} prefix=${{ secrets.PREFIX }} allowedIP=${{ secrets.ALLOWED_IP }}
+          parameters: appEnvironment=${{ needs.setup.outputs.build_env }} adminPassword=${{ steps.resolve-shared-resources.outputs.vmPassword }} prefix=${{ env.STACK_NAME_TAG }} subnetRef1=${{ steps.resolve-shared-resources.outputs.subnetRef1 }} subnetRef2=${{ steps.resolve-shared-resources.outputs.subnetRef2 }}
           template: ./Deployment/environment.bicep

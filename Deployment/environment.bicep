@@ -14,34 +14,28 @@ param appEnvironment string
 @description('Prefix for resource name')
 param prefix string
 
-@description('Allowed IP')
-param allowedIP string
+@description('Matchingengine Subnet resource Id')
+param subnetRef1 string
+
+@description('Switch IO Data Subnet resource Id')
+param subnetRef2 string
 
 var tags = {
-  'stack-id': 'demo'
+  'stack-name': 'matchingengine'
   'stack-environment': appEnvironment
-  'stack-prefix': prefix
 }
-
-@description('Name for the Public IP used to access the Virtual Machine.')
-param publicIPAllocationMethod string = 'Dynamic'
-param publicIpSku string = 'Basic'
 
 var vmSize = [
   'Standard_D2_v4'
   'Standard_D4s_v3'
 ]
 
-var containerName = 'tmx'
-var virtualNetworkName = '${prefix}-vnet'
-var subnetName1 = 'appsvccs'
-var subnetName2 = 'default'
-var networkSecurityGroupName1 = '${subnetName1}-nsg'
-var networkSecurityGroupName2 = '${subnetName2}-nsg'
-var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, subnetName1)
-var subnetRef2 = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, subnetName2)
+var containerName = 'apps'
+var subnetName1 = 'matchingengine'
+var subnetName2 = 'switchiodata'
+
 var numberOfInstances = 5
-var publicIP = '${prefix}-pip'
+//var publicIP = '${prefix}-pip'
 var zones = [
   '1'
 ]
@@ -84,86 +78,6 @@ resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@20
 
 }
 
-//Client VM associated public IP
-resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
-  name: publicIP
-  location: location
-  tags: tags
-  zones: zones
-  sku: {
-    name: publicIpSku
-  }
-  properties: {
-    publicIPAllocationMethod: publicIPAllocationMethod
-    dnsSettings: {
-      domainNameLabel: prefix
-    }
-  }
-}
-
-//network security group associated with trading platform subnet
-resource nsg1 'Microsoft.Network/networkSecurityGroups@2020-06-01' = {
-  name: networkSecurityGroupName1
-  tags: tags
-  location: location
-  properties: {
-    securityRules: [
-      {
-        name: 'default-allow-rdp'
-        properties: {
-          priority: 1000
-          sourceAddressPrefix: allowedIP
-          protocol: 'Tcp'
-          destinationPortRange: '3389'
-          access: 'Allow'
-          direction: 'Inbound'
-          sourcePortRange: '*'
-          destinationAddressPrefix: '*'
-        }
-      }
-    ]
-  }
-}
-
-resource nsg2 'Microsoft.Network/networkSecurityGroups@2020-06-01' = {
-  name: networkSecurityGroupName2
-  location: location
-}
-
-//Virtual Network resource
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-  name: virtualNetworkName
-  tags: tags
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        '10.0.0.0/16'
-      ]
-    }
-    subnets: [
-      {
-        name: subnetName1
-        properties: {
-          addressPrefix: '10.0.1.0/24'
-          networkSecurityGroup: {
-            id: nsg1.id
-          }
-        }
-      }
-      {
-        name: subnetName2
-        properties: {
-          addressPrefix: '10.0.2.0/24'
-          networkSecurityGroup: {
-            id: nsg2.id
-          }
-        }
-      }
-    ]
-  }
-}
-
 // Trading platform network interface cards
 // Trading VM require Public Associated with it. Added a condition to make sure only Trading VM nic should be associated with Public IP
 resource nic1 'Microsoft.Network/networkInterfaces@2021-08-01' = [for i in range(0, numberOfInstances): {
@@ -178,20 +92,13 @@ resource nic1 'Microsoft.Network/networkInterfaces@2021-08-01' = [for i in range
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           primary: true
-          //Added a condition to make sure only trading VM nic should be associated with Public IP
-          publicIPAddress: ((i == 2) ? {
-            id: pip.id
-          } : null)
           subnet: {
-            id: subnetRef
+            id: subnetRef1
           }
         }
       }
     ]
   }
-  dependsOn: [
-    virtualNetwork
-  ]
 }]
 
 resource nic2 'Microsoft.Network/networkInterfaces@2020-06-01' = [for i in range(0, numberOfInstances): {
@@ -213,13 +120,10 @@ resource nic2 'Microsoft.Network/networkInterfaces@2020-06-01' = [for i in range
     ]
 
   }
-  dependsOn: [
-    virtualNetwork
-  ]
 }]
 
 resource ppg 'Microsoft.Compute/proximityPlacementGroups@2022-03-01' existing = {
-  name: 'tmxdemoppg'
+  name: 'demoppg'
 }
 
 // Virtual Machines - Client VM, Trading Platform, Market Data
@@ -297,5 +201,4 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
     Application_Type: 'web'
     WorkspaceResourceId: logAnalyticsWorkspace.id
   }
-
 }

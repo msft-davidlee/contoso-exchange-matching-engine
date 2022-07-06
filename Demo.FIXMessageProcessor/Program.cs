@@ -13,7 +13,7 @@ namespace Demo.FIXMessageProcessor
             var builder = Host.CreateDefaultBuilder(args);
             if (args.Length == 1 && args[0] == "service")
             {
-                builder.UseWindowsService(options => options.ServiceName = "TMXDemoFIXMessageProcessor");
+                builder.UseWindowsService(options => options.ServiceName = "DemoFIXMessageProcessor");
             }
 
             using IHost host = builder.ConfigureServices(services =>

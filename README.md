@@ -57,7 +57,8 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 3. On your GitHub forked repo, go to settings, then Actions on the left blade, scroll down to the bottom and under Workflow permissions check the read and write permissions option.
 4. Push into your git remote repo to kick off the CI process. You will also notice the CD process might have kicked off. This is because this is needed to create the initial workflow that will appear in the workflow screen. 
 5. Check to make sure the workflow(s) completes successfully.
-6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen.
+6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen which will create the VMs.
+7. If the Deploy Azure Resources and Environment workflow is successful, we should create the cloudSwXtch appliance in the matchingengine resource group.
 
 ### Secrets
 | Name | Value |
@@ -68,7 +69,7 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 # VM Setup
 1. On the Matching engine server, you should execute ``` ssh-keygen ``` to generate your ssh keys. 
 2. Use the value from id_rsa.pub and use this for each client VM install so you can ssh into the client VMs. To get value, first, ``` C:\Users\devuser\.ssh ```, then run ``` Get-Content id_rsa.pub ```.
-3. Save this file into the Storage account inside of the container tmx and name the file ``` pub.txt ```.
+3. Save this file into the Storage account inside of the container certs and name the file ``` pub.txt ```.
 
 # Multicast
 We are using cloudSwXtch for our multicast needs. Please create an instance of it in your VNET. Note that subnetDataName should be configured to the default subnet and subnetCtrlName should be configured to appsvccs subnet.

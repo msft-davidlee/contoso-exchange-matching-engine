@@ -21,7 +21,7 @@ function GetResource([string]$stackId, [string]$stackEnvironment) {
 $ErrorActionPreference = "Stop"
 
 
-$ContainerName = "tmx"
+$ContainerName = "apps"
 $end = (Get-Date).AddDays(1).ToString("yyyy-MM-dd")
 $start = (Get-Date).ToString("yyyy-MM-dd")
 

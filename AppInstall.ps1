@@ -45,7 +45,7 @@ taskkill /IM Demo.MarketDataRecipient.exe /F
 $apps = $InstallAppNames.Split(',')
 $apps | ForEach-Object {
     $app = $_
-    $sas = $DownloadSas.Replace("tmx?", "tmx/$app.zip?")
+    $sas = $DownloadSas.Replace("apps?", "apps/$app.zip?")
     Invoke-WebRequest -Uri $sas -OutFile "$app.zip" -UseBasicParsing
     Expand-Archive "$app.zip" .\$app -Force 
 }
@@ -96,7 +96,7 @@ if ($state -ne "Installed") {
     Stop-Service sshd
 
     $PubKeyFile = "pub"
-    $sas = $DownloadSas.Replace("tmx?", "tmx/$PubKeyFile.txt?")
+    $sas = $DownloadSas.Replace("certs?", "certs/$PubKeyFile.txt?")
     Invoke-WebRequest -Uri $sas -OutFile "$PubKeyFile.txt" -UseBasicParsing
     Copy-Item -Path "$PubKeyFile.txt" -Destination "C:\ProgramData\ssh\administrators_authorized_keys" -Force
 

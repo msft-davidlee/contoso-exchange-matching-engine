@@ -82,7 +82,7 @@ namespace Demo.MatchingEngine
             var builder = Host.CreateDefaultBuilder(args);
             if (args.Length == 1 && args[0] == "service")
             {
-                builder.UseWindowsService(options => options.ServiceName = "TMXDemoMatchingEngine");
+                builder.UseWindowsService(options => options.ServiceName = "DemoMatchingEngine");
             }
 
             using IHost host = builder.ConfigureServices(services =>
