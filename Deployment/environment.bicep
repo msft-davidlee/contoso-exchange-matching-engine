@@ -30,12 +30,10 @@ var vmSize = [
   'Standard_D4s_v3'
 ]
 
-var containerName = 'apps'
 var subnetName1 = 'matchingengine'
 var subnetName2 = 'switchiodata'
 
 var numberOfInstances = 5
-//var publicIP = '${prefix}-pip'
 var zones = [
   '1'
 ]
@@ -66,16 +64,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
     name: 'Standard_LRS'
   }
   kind: 'StorageV2'
-}
-
-// Storage account container to store the application artifacts
-resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-06-01' = {
-
-  name: '${storageAccount.name}/default/${containerName}'
-  properties: {
-    publicAccess: 'Blob'
-  }
-
 }
 
 // Trading platform network interface cards

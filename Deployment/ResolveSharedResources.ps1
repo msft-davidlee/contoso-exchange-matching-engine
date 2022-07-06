@@ -1,5 +1,7 @@
 param([string]$BuildEnvironment)
 
+$ErrorActionPreference = "Stop"
+
 $groups = az group list --tag stack-environment=$BuildEnvironment | ConvertFrom-Json
 $matchingEngineResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-matchingengine' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
 Write-Host "::set-output name=resourceGroup::$matchingEngineResourceGroup"
