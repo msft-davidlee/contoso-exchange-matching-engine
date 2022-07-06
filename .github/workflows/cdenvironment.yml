@@ -1,0 +1,53 @@
+name: Deploy Azure Resources and Environment
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Choose Secrets Environment Job
+    runs-on: windows-latest
+    steps:
+      - id: setup
+        name: Setup Environment Setp
+        run: |
+          $envSelector = "${{ github.event.inputs.environmentselector }}"
+          Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
+          if ($envSelector -eq '' -or $envSelector -eq 'default') {            
+            if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+              echo "::set-output name=build_env::prod"              
+            } else {
+              echo "::set-output name=build_env::dev"              
+            }
+          } else {
+            echo "::set-output name=build_env::$envSelector"
+          }
+    outputs:
+      build_env: ${{ steps.setup.outputs.build_env }}
+
+  cd_environment:
+    name: Deploy Azure environment
+    runs-on: windows-latest
+    needs: setup
+    environment: ${{ needs.setup.outputs.build_env }}
+    steps:
+      - uses: actions/checkout@v3
+
+        # Log into Azure
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - id: resolve-shared-resources
+        name: Resolve shared resources
+        working-directory: .\deployment
+        run: |
+          .\ResolveSharedResources.ps1 -BUILD_ENV ${{ needs.setup.outputs.build_env }}
+
+      - id: deploy
+        name: Build
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
+          resourceGroupName: ${{ steps.resolve-shared-resources.outputs.ResourceGroup }}
+          parameters: adminPassword=${{ secrets.VM_PASSWORD }} appEnvironment=${{ needs.setup.outputs.build_env }} prefix=${{ secrets.PREFIX }} allowedIP=${{ secrets.ALLOWED_IP }}
+          template: ./Deployment/environment.bicep

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Demo.CustomerOrder": {
+      "commandName": "Project",
+      "commandLineArgs": "10"
+    }
+  }
+}

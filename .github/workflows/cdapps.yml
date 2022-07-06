@@ -1,0 +1,45 @@
+name: Deploy apps into VMs
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    name: Choose Secrets Environment Job
+    runs-on: windows-latest
+    steps:
+      - id: setup
+        name: Setup Environment Setp
+        run: |
+          $envSelector = "${{ github.event.inputs.environmentselector }}"
+          Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
+          if ($envSelector -eq '' -or $envSelector -eq 'default') {            
+            if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+              echo "::set-output name=build_env::prod"              
+            } else {
+              echo "::set-output name=build_env::dev"              
+            }
+          } else {
+            echo "::set-output name=build_env::$envSelector"
+          }
+    outputs:
+      build_env: ${{ steps.setup.outputs.build_env }}
+
+  publish_apps:
+    name: publishing app
+    runs-on: windows-latest
+    needs: setup
+    environment: ${{ needs.setup.outputs.build_env }}
+    strategy:
+      matrix:
+        appName: ['cli1', 'cli2', 'trd1', 'mkt1', 'mkt2']
+    steps:
+      - uses: actions/checkout@v3
+
+        # Log into Azure
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy app ${{ matrix.appName }}
+        run: |
+          .\LocalDeploy.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }} -DeployApp ${{ matrix.appName }}

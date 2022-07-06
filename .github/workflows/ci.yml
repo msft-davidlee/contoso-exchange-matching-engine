@@ -1,0 +1,64 @@
+name: Build, Test, Publish apps
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - '**/**.bicep'
+      - '**/cdenvironment.yml'
+      - '**/cdapps.yml'
+      - 'docs/**'
+
+jobs:
+  setup:
+    name: Choose environment
+    runs-on: windows-latest
+    steps:
+      - id: setup
+        name: Setup Environment Setp
+        run: |
+          $envSelector = "${{ github.event.inputs.environmentselector }}"
+          Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
+          if ($envSelector -eq '' -or $envSelector -eq 'default') {            
+            if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+              echo "::set-output name=build_env::prod"              
+            } else {
+              echo "::set-output name=build_env::dev"              
+            }
+          } else {
+            echo "::set-output name=build_env::$envSelector"            
+          }
+    outputs:
+      build_env: ${{ steps.setup.outputs.build_env }}
+
+  test_and_publish:
+    name: Test and publish apps
+    needs: setup
+    environment: ${{ needs.setup.outputs.build_env }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .Net 6
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Test
+        run: dotnet test --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+        # Log into Azure
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v1.5.0
+        if: always()
+        with:
+          name: Test Results
+          path: ./**/TestResults/*.trx
+          reporter: 'dotnet-trx'
+
+      - name: Publish and build
+        run: |
+          .\LocalBuild.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }} -Prefix ${{ secrets.PREFIX }}
