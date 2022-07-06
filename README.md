@@ -104,6 +104,16 @@ sell 50 MSFT@150
 ```
 buy 25 MSFT@175
 ```
+3. To run a sell simulation you can use the following command where 0 means sell, 15 means every 15 seconds, and 10 means for the next 10 minutes.
+```
+sim 0 15 10
+```
+4. To run a buy simulation you can use the following command where 1 means buy, 15 means every 15 seconds, and 10 means for the next 10 minutes.
+```
+sim 1 15 10
+```
+5. You can review Application Insights which will show the Application Map and be able to drill down on each order.
+6. You should also take note of the Market Data Recipients where when a trade is made, it will be the receiver of the broadcast event.
 
 # References
 The following are libraries used in this repo.
