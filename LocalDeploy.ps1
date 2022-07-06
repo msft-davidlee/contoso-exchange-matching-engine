@@ -1,33 +1,18 @@
 ﻿
 param([string]$BuildEnvironment, [string]$DeployApp)
 
-function GetResource([string]$stackId, [string]$stackEnvironment) {
-    $platformRes = (az resource list --tag stack-id=$stackName | ConvertFrom-Json)
-    if (!$platformRes) {
-        throw "Unable to find eligible $stackId resource!"
-    }
-    if ($platformRes.Length -eq 0) {
-        throw "Unable to find 'ANY' eligible $stackId resource!"
-    }
-                
-    $res = ($platformRes | Where-Object { $_.tags.'stack-environment' -eq $stackEnvironment })
-    if (!$res) {
-        throw "Unable to find resource by environment!"
-    }
-                
-    return $res
-}
-
 $ErrorActionPreference = "Stop"
 
+$groups = az group list --tag stack-environment=$BUILD_ENV | ConvertFrom-Json
+$sharedResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-shared-services' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
+$sharedResources = az resource list --resource-group $sharedResourceGroup | ConvertFrom-Json
 
 $ContainerName = "apps"
 $end = (Get-Date).AddDays(1).ToString("yyyy-MM-dd")
 $start = (Get-Date).ToString("yyyy-MM-dd")
 
 # Section: Self discover Storage Account
-$foundResources = GetResource -stackId "demo" -stackEnvironment $BuildEnvironment
-$foundStorageResource = ($foundResources | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" })[0]
+$foundStorageResource = ($sharedResources | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" })[0]
 $AccountName = $foundStorageResource.name
 $foundStorageResource = ((az resource list --name $AccountName | ConvertFrom-Json) | Where-Object { $_.type -eq "Microsoft.Storage/storageAccounts" })[0]
 
@@ -35,7 +20,8 @@ $AccountKey = (az storage account keys list -g $foundStorageResource.resourceGro
 $sas = (az storage container generate-sas -n $ContainerName --account-name $AccountName --account-key $AccountKey --permissions rl --expiry $end --start $start --https-only | ConvertFrom-Json)
 $InstallAppScript = "https://$AccountName.blob.core.windows.net/$ContainerName/AppInstall.ps1?$sas"
 
-$VMList = az vm list -g $foundStorageResource.resourceGroup --query "[].name" -o tsv 
+$matchingEngineResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-matchingengine' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
+$VMList = az vm list -g $matchingEngineResourceGroup --query "[].name" -o tsv 
 
 $VMList | ForEach-Object {
     $VM = $_
