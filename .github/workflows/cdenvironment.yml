@@ -5,7 +5,7 @@ on:
     paths-ignore:
       - 'README.md'
 env:
-  STACK_NAME_TAG: 'cntex01'
+  STACK_NAME_TAG: 'cntex02'
       
 jobs:
   setup:
