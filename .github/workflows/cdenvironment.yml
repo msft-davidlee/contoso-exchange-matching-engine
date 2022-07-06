@@ -1,0 +1,65 @@
+name: Deploy Azure Resources and Environment
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'README.md'
+env:
+  STACK_NAME_TAG: 'cntex02'
+      
+jobs:
+  setup:
+    name: Choose Secrets Environment Job
+    runs-on: windows-latest
+    steps:
+      - id: setup
+        name: Setup Environment Setp
+        run: |
+          if ("${{ github.event_name }}" -eq "push") {
+            echo "::set-output name=skip::true"   
+            return
+          }
+          echo "::set-output name=skip::false" 
+          $envSelector = "${{ github.event.inputs.environmentselector }}"
+          Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
+          if ($envSelector -eq '' -or $envSelector -eq 'default') {            
+            if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+              echo "::set-output name=build_env::prod"              
+            } else {
+              echo "::set-output name=build_env::dev"              
+            }
+          } else {
+            echo "::set-output name=build_env::$envSelector"
+          }
+    outputs:
+      build_env: ${{ steps.setup.outputs.build_env }}
+      skip: ${{ steps.setup.outputs.skip }}
+
+  cd_environment:
+    if: ${{ needs.setup.outputs.skip == 'false' }}
+    name: Deploy Azure environment
+    runs-on: windows-latest
+    needs: setup
+    environment: ${{ needs.setup.outputs.build_env }}
+    steps:
+      - uses: actions/checkout@v3
+
+        # Log into Azure
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - id: resolve-shared-resources
+        name: Resolve shared resources
+        working-directory: .\deployment
+        run: |
+          .\ResolveSharedResources.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }}
+
+      - id: deploy
+        name: Build
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
+          resourceGroupName: ${{ steps.resolve-shared-resources.outputs.ResourceGroup }}
+          parameters: appEnvironment=${{ needs.setup.outputs.build_env }} adminPassword=${{ steps.resolve-shared-resources.outputs.vmPassword }} prefix=${{ env.STACK_NAME_TAG }} subnetRef1=${{ steps.resolve-shared-resources.outputs.subnetRef1 }} subnetRef2=${{ steps.resolve-shared-resources.outputs.subnetRef2 }}
+          template: ./Deployment/environment.bicep

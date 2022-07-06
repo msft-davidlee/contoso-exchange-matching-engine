@@ -1,0 +1,69 @@
+name: Deploy Networking resources
+on: 
+  push:
+    paths:
+      - '**/networking.yml'
+      - '**/networking.bicep'     
+      - '**/ResolveNetworkingResources.ps1'
+  workflow_dispatch:
+    inputs:
+      environmentselector:
+        description: 'Environment selector'     
+        required: false
+        default: 'dev'
+env:
+  STACK_NAME_TAG: 'cntex-networking'
+
+jobs:
+  setup:
+    name: Choose Secrets Environment Job
+    runs-on: windows-latest
+    steps:
+      - id: setup
+        name: Setup Environment Setp
+        run: |
+          $envSelector = "${{ github.event.inputs.environmentselector }}"
+          Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
+          if ($envSelector -eq '' -or $envSelector -eq 'default') {            
+            if ('${{ github.ref }}' -eq 'refs/heads/main') { 
+              echo "::set-output name=build_env::prod"
+            } else {
+              echo "::set-output name=build_env::dev"
+            }
+          } else {
+            echo "::set-output name=build_env::$envSelector"
+          }
+    outputs:
+      build_env: ${{ steps.setup.outputs.build_env }}
+      skip_functional_test: ${{ steps.setup.outputs.skip_functional_test }}
+
+  build_deploy:
+    name: Build, Deploy VNet Job
+    needs: setup
+    environment: ${{ needs.setup.outputs.build_env }}
+    runs-on: windows-latest
+    steps:    
+      - uses: actions/checkout@v2
+  
+      - name: Azure CLI Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - id: resolve-shared-resources
+        name: Resolve shared resources
+        working-directory: .\deployment
+        run: |
+          .\ResolveNetworkingResources.ps1 -BuildEnvironment ${{ needs.setup.outputs.build_env }}
+
+      - name: Build azure environment
+        id: deploy
+        uses: azure/arm-deploy@v1
+        with:
+          deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
+          resourceGroupName: ${{ steps.resolve-shared-resources.outputs.resourceGroup }}
+          template: ./deployment/networking.bicep
+          parameters: >            
+            environment=${{ needs.setup.outputs.build_env }}
+            prefix=${{ env.STACK_NAME_TAG }}
