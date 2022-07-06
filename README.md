@@ -83,6 +83,11 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 14. Copy the 2 powershell scripts from the VM folder into the Desktop of the trading platform VM. 
 15. Edit the 2 powershell scripts and configure the prefix which refers to the prefix + environment as part of the name of the VMs.
 16. We can now run the LocalRun.ps1 file which will run the trading platform as well as ssh into the other VMs and launch the processes there. Refer to the Demo section for more information on what you can run.
+    1. The FIX message processor and matching engine should be running locally. 
+    2. When prompted whether to trust the ssh connections, say yes.
+    3. In the 2 Market Data Recipients consoles, start with the following: ``` .\Demo.MarketDataRecipient.exe ```
+    4. In the client 1 console, start with the following: ``` .\Demo.CustomerOrder.exe 10 ```
+    5. In the client 2 console, start with the following: ``` .\Demo.CustomerOrder.exe 100000 ```
 
 ### Secrets
 | Name | Value |
