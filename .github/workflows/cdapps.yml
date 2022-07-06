@@ -1,7 +1,7 @@
 name: Deploy apps into VMs
 on:
   workflow_dispatch:
-
+  push:
 jobs:
   setup:
     name: Choose Secrets Environment Job
@@ -10,6 +10,11 @@ jobs:
       - id: setup
         name: Setup Environment Setp
         run: |
+          if ("${{ github.event.type }}" -eq "push") {
+            echo "::set-output name=skip::true"   
+            return
+          }
+          echo "::set-output name=skip::false"                   
           $envSelector = "${{ github.event.inputs.environmentselector }}"
           Write-Host "Environment Selector: $envSelector Branch ${{ github.ref }}"
           if ($envSelector -eq '' -or $envSelector -eq 'default') {            
@@ -23,8 +28,10 @@ jobs:
           }
     outputs:
       build_env: ${{ steps.setup.outputs.build_env }}
+      skip: ${{ steps.setup.outputs.skip }}
 
   publish_apps:
+    if: ${{ needs.setup.outputs.skip == 'false' }}  
     name: publishing app
     runs-on: windows-latest
     needs: setup

@@ -29,7 +29,23 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 
 ## Steps
 1. As an Azure Subscription Owner, we will need to configure our Azure Subscription with [Azure Blueprint](BLUEPRINT.md) to create the necessary resources and resource groups. This will also create the right tags on your resources and resource groups which our scripts used in CI/CD rely on.
-2. Next, we will need to configure our [GitHub repo](DEVOPS.md).
+2. If you check your local repo, it contains several yaml files located in the Deployment directory and they rely on GitHub Secrets for accessing the Service Principal which is assigned access to the Azure Subscription from the previous step. From a code scanning perspective, the workflows/codeql-analysis.yml contains the code language known as Code QL that specify the scanning parameters such as language and scanning triggers. 
+    1. Create an environment called dev and prod in GitHub secrets. 
+    2. Create the following secrets as shown in thr secrets section below which are populate with some of the same values as in the shared Azure Key Vault.
+    3. The client Id comes from the **Contoso Exchange** app registration.
+    4. The client secret can be generated from the  **Contoso Exchange***.
+    5. Use the subscription Id of your Azure Subscription.
+    6. Use the tenant Id of your Azure AAD.
+3. On your GitHub forked repo, go to settings, then Actions on the left blade, scroll down to the bottom and under Workflow permissions check the read and write permissions option.
+4. Push into your git remote repo to kick off the CI process. You will also notice the CD process might have kicked off. This is because this is needed to create the initial workflow that will appear in the workflow screen. 
+5. Check to make sure the workflow(s) completes successfully.
+6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen.
+
+
+### Secrets
+| Name | Value |
+| --- | --- |
+| AZURE_CREDENTIALS | <pre>{<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientSecret": "", <br/>&nbsp;&nbsp;&nbsp;&nbsp;"subscriptionId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"tenantId": "" <br/>}</pre> |
 3. Now we are ready to execute our first GitHub Workflow for creating our networking environments.
 
 # VM Setup
