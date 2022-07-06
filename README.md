@@ -62,7 +62,7 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 ```
 .\TriggerWorkflow.ps1 -DeplyEnvironment -Owner <org name> -Branch <name of your branch> -PersonalAccessToken (ConvertTo-SecureString -String "<personal access token generated from your personal profile>" -AsPlainText -Force)
 ```
-8. If the Deploy Azure Resources and Environment workflow is successful, create a trial cloudSwXtch appliance in the matchingengine resource group.
+8. If the Deploy Azure Resources and Environment workflow is successful, create a trial cloudSwXtch appliance in the matchingengine resource group. We are using cloudSwXtch for our multicast needs. Please create an instance of it in your VNET. Note that subnetDataName should be configured to the switchiodata subnet and subnetCtrlName should be configured to matchingengine subnet.
 9. Now we are ready to kick off the CI process. Open Demo.CustomerOrder project and add some comments in Program.cs.
 10. The Build, Test, Publish apps workflow should kick off.
 11. If the Build, Test, Publish apps workflow is successful, we can now enable JIT for the trading platform VM. Follow the link for more info: https://docs.microsoft.com/en-us/azure/defender-for-cloud/just-in-time-access-usage.
@@ -71,8 +71,18 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
     3. Click Enable Just in time button.
     4. Once enabled, a link should show up: Open Microsoft Defender for Cloud
     5. Click on the link and request for access.
-    6. Select the Remote Desktop Port
-
+    6. Select the Remote Desktop Port. 
+12. RDP into the trading platform VM. Remember that your VM password is stored in Azure Key Vault in the shared resource group.
+    1. Execute ``` ssh-keygen ``` to generate your ssh keys. 
+    2. Use the value from id_rsa.pub and use this for each client VM install so you can ssh into the client VMs. To get value, first, ``` C:\Users\devuser\.ssh ```, then run ``` Get-Content id_rsa.pub ```.
+    3. Save this file into the Storage account inside of the container certs and name the file ``` pub.txt ``` in the shared resource group.
+13. Now, we can trigger the Deploy apps into VMs workflow from the workflow screen which will deploy the apps into the VMs. Use the following script and run from the root directory:
+```
+.\TriggerWorkflow.ps1 -DeplyApps -Owner <org name> -Branch <name of your branch> -PersonalAccessToken (ConvertTo-SecureString -String "<personal access token generated from your personal profile>" -AsPlainText -Force)
+```
+14. Copy the 2 powershell scripts from the VM folder into the Desktop of the trading platform VM. 
+15. Edit the 2 powershell scripts and configure the prefix which refers to the prefix + environment as part of the name of the VMs.
+16. We can now run the LocalRun.ps1 file which will run the trading platform as well as ssh into the other VMs and launch the processes there. Refer to the Demo section for more information on what you can run.
 
 ### Secrets
 | Name | Value |
@@ -80,21 +90,22 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 | AZURE_CREDENTIALS | <pre>{<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"clientSecret": "", <br/>&nbsp;&nbsp;&nbsp;&nbsp;"subscriptionId": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"tenantId": "" <br/>}</pre> |
 3. Now we are ready to execute our first GitHub Workflow for creating our networking environments.
 
-# VM Setup
-1. On the Matching engine server, you should execute ``` ssh-keygen ``` to generate your ssh keys. 
-2. Use the value from id_rsa.pub and use this for each client VM install so you can ssh into the client VMs. To get value, first, ``` C:\Users\devuser\.ssh ```, then run ``` Get-Content id_rsa.pub ```.
-3. Save this file into the Storage account inside of the container certs and name the file ``` pub.txt ```.
-
-# Multicast
-We are using cloudSwXtch for our multicast needs. Please create an instance of it in your VNET. Note that subnetDataName should be configured to the default subnet and subnetCtrlName should be configured to appsvccs subnet.
+# Demo
+1. Note there is a buyer and a seller client. To run a sell of 50 MSFT stocks at $150 use the following syntax on the seller client.
+```
+sell 50 MSFT@150
+```
+2. To run a buy of 25 MSFT stocks at $175, use the following syntax on the buyer client.
+```
+buy 25 MSFT@175
+```
 
 # References
-The following are libraries used in this project.
+The following are libraries used in this repo.
 
 * FIX Library: https://github.com/connamara/quickfixn
 * Matching Engine: https://github.com/ArjunVachhani/order-matcher
-* Multicast on Azure via a virtual network switch of Market Data https://azuremarketplace.microsoft.com/en-us/marketplace/apps/swxtchiollc1614108926893.sdmc-1_1?tab=Overview
-* Documentation of cloudSwXtch https://docs.swxtch.io/
+* Multicast on Azure via a virtual network switch with [cloudSwXtch](https://docs.swxtch.io/). Use the following link to create an instance: https://azuremarketplace.microsoft.com/en-us/marketplace/apps/swxtchiollc1614108926893.sdmc-1_1?tab=Overview
 
 ## Have an issue?
 You are welcome to create an issue if you need help but please note that there is no timeline to answer or resolve any issues you have with the contents of this project. Use the contents of this project at your own risk! If you are interested to volunteer to maintain this, please feel free to reach out to be added as a contributor and send Pull Requests (PR).

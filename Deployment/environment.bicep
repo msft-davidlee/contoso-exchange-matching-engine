@@ -24,7 +24,7 @@ var tags = {
   'stack-name': 'matchingengine'
   'stack-environment': appEnvironment
 }
-
+var stackResName = '${prefix}${appEnvironment}'
 var vmSize = [
   'Standard_D2_v4'
   'Standard_D4s_v3'
@@ -39,25 +39,25 @@ var zones = [
 ]
 //VM Variables
 var vmNamePrefix = [
-  '${prefix}-cli1'
-  '${prefix}-cli2'
-  '${prefix}-trd1'
-  '${prefix}-mkt1'
-  '${prefix}-mkt2'
+  '${stackResName}-cli1'
+  '${stackResName}-cli2'
+  '${stackResName}-trd1'
+  '${stackResName}-mkt1'
+  '${stackResName}-mkt2'
 ]
 //App Insights 
-var appInsightName = '${prefix}-ins'
+var appInsightName = '${stackResName}-ins'
 
 // Log Analytics 
 
-var logAnlayticsWorkSpacename = '${prefix}-log'
+var logAnlayticsWorkSpacename = '${stackResName}-log'
 var retentionInDays = 30
 var lasku = 'PerGB2018'
 
 //Storage Acccount to store VM diag logs
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
-  name: '${prefix}str'
+  name: '${stackResName}str'
   location: location
   tags: tags
   sku: {
@@ -83,7 +83,7 @@ resource nic1 'Microsoft.Network/networkInterfaces@2021-08-01' = [for i in range
           //Added a condition to make sure only trading VM nic should be associated with Public IP
           publicIPAddress: ((i == 2) ? {
             id: pip.id
-          } : null)          
+          } : null)
           subnet: {
             id: subnetRef1
           }
@@ -108,14 +108,12 @@ resource nic2 'Microsoft.Network/networkInterfaces@2020-06-01' = [for i in range
           }
         }
       }
-
     ]
-
   }
 }]
 
 var publicIPAllocationMethod = 'Dynamic'
-var publicIP = '${prefix}-pip'
+var publicIP = '${stackResName}-pip'
 var publicIpSku = 'Basic'
 //Client VM associated public IP
 resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
@@ -129,7 +127,7 @@ resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   properties: {
     publicIPAllocationMethod: publicIPAllocationMethod
     dnsSettings: {
-      domainNameLabel: prefix
+      domainNameLabel: stackResName
     }
   }
 }
@@ -137,6 +135,7 @@ resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
 resource ppg 'Microsoft.Compute/proximityPlacementGroups@2022-03-01' = {
   name: 'demoppg'
   location: location
+  tags: tags
   properties: {
     proximityPlacementGroupType: 'Standard'
   }
@@ -168,7 +167,7 @@ resource vm_resource 'Microsoft.Compute/virtualMachines@2021-11-01' = [for i in 
         version: 'latest'
       }
       osDisk: {
-        name: '${prefix}-${vmNamePrefix[i]}-os'
+        name: '${stackResName}-${vmNamePrefix[i]}-os'
         createOption: 'FromImage'
         managedDisk: {
           storageAccountType: 'Standard_LRS'
