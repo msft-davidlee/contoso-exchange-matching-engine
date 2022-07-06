@@ -4,8 +4,7 @@ $groups = az group list --tag stack-environment=$BuildEnvironment | ConvertFrom-
 $matchingEngineResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-matchingengine' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
 Write-Host "::set-output name=resourceGroup::$matchingEngineResourceGroup"
 
-$groups = az group list --tag stack-environment=$BuildEnvironment | ConvertFrom-Json
-$networkingResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-networking' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$networkingResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-networking' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
 $networkingResources = az resource list --resource-group $networkingResourceGroup | ConvertFrom-Json
 
 $vnet = $networkingResources | Where-Object { $_.type -eq "Microsoft.Network/virtualNetworks" }

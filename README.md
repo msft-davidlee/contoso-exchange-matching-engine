@@ -57,7 +57,10 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 3. On your GitHub forked repo, go to settings, then Actions on the left blade, scroll down to the bottom and under Workflow permissions check the read and write permissions option.
 4. Push into your git remote repo to kick off the CI process. You will also notice the CD process might have kicked off. This is because this is needed to create the initial workflow that will appear in the workflow screen. 
 5. Check to make sure the workflow(s) completes successfully.
-6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen which will create the VMs.
+6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen which will create the VMs. Use the following script and run from the root directory:
+```
+.\TriggerWorkflow.ps1 -DeplyEnvironment -Owner <org name> -Branch <name of your branch> -PersonalAccessToken (ConvertTo-SecureString -String "<personal access token generated from your personal profile>" -AsPlainText -Force)
+```
 7. If the Deploy Azure Resources and Environment workflow is successful, we should create the cloudSwXtch appliance in the matchingengine resource group.
 
 ### Secrets
