@@ -17,6 +17,9 @@ The following are considerations as we speak about the Architecture.
 2. Under references, we can see that we are using a few open source libraries. As such it is key for us to consider the security implications. We advocate for any software development to shift left and that means leveraging the code scan and other capabilities. For example, one can easily review security alerts on the security tab of the GitHub Repo.
 3. There are multiple workflows for CI and CD purposes as well as for code scanning which ensures we are really thinking about every-as-code/ infra-as-code. The CI is going to be executed on every push and the 2 CDs are manually triggered.
 4. The Architecture consist of a few VMs which consist of a buyer/seller clients, the trading platform which represents the mock exchange which host a FIX endpoint and matching engine, a managed appliance - cloudSwXtch for doing multicast broadcast and clients that subscribe to the multicast broadcast.
+5. None of the VM will be exposed directly although a public ip is created. We will leverage just-in-time (JIT) access. 
+6. The subnets are protected by Network Security Group (NSGs) and work in conjection with the JIT access.
+7. All metrics/logs will be ingested into Log Analytics Workspace and surfaced by Application Insights.
 
 # Getting Started
 As a developer, you can run build this solution locally with Visual Studio 2022 and above. Configure your solution to debug the following projects. Note that you wouldn't be able to debug the MarketDataRecipient unless you have the Multicast appliance configured. The yaml and powershell scripts can be configured by VS Code.
