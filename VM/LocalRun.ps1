@@ -1,3 +1,5 @@
+# Copy to desktop on trading platform VM.
+
 Push-Location C:\dev\fixmsgprocessor
 Start-Process -FilePath Demo.FIXMessageProcessor.exe
 Pop-Location

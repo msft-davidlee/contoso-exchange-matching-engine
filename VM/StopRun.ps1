@@ -1,3 +1,5 @@
+# Copy to desktop on trading platform VM.
+
 taskkill /IM Demo.FIXMessageProcessor.exe /F
 taskkill /IM Demo.MatchingEngine.exe /F
 
