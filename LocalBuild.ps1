@@ -56,7 +56,7 @@ if (!(Test-Path $FolderName)) {
 }
 
 #Section: Self discover trading platform
-$nic = ($matchingEngineResources | Where-Object { $_.type -eq "Microsoft.Network/networkInterfaces" -and $_.name.Contains("$Prefix-trd1-appsvccs") })[0]
+$nic = ($matchingEngineResources | Where-Object { $_.type -eq "Microsoft.Network/networkInterfaces" -and $_.name.Contains("$Prefix-trd1-matchingengine") })[0]
 
 $nicCfg = (az network nic ip-config show -g $nic.resourceGroup -n ipconfig1 --nic-name $nic.name | ConvertFrom-Json)
 $priIP = $nicCfg.privateIpAddress
