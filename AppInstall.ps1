@@ -28,7 +28,7 @@ Push-Location $workDir
 
 if (!(Test-Path "dotnet-runtime-6.0.5-win-x64.exe")) {
     
-    Write-Host "Installing .NET..."
+    Write-Host "Installing .NET 6..."
 
     Invoke-WebRequest -Uri https://download.visualstudio.microsoft.com/download/pr/b395fa18-c53b-4f7f-bf91-6b2d3c43fedb/d83a318111da9e15f5ecebfd2d190e89/dotnet-runtime-6.0.5-win-x64.exe `
         -OutFile dotnet-runtime-6.0.5-win-x64.exe -UseBasicParsing
