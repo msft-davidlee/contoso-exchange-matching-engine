@@ -110,8 +110,12 @@ resource nic2 'Microsoft.Network/networkInterfaces@2020-06-01' = [for i in range
   }
 }]
 
-resource ppg 'Microsoft.Compute/proximityPlacementGroups@2022-03-01' existing = {
+resource ppg 'Microsoft.Compute/proximityPlacementGroups@2022-03-01' = {
   name: 'demoppg'
+  location: location
+  properties: {
+    proximityPlacementGroupType: 'Standard'
+  }
 }
 
 // Virtual Machines - Client VM, Trading Platform, Market Data
