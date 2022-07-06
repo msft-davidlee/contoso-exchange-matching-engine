@@ -61,7 +61,8 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 ```
 .\TriggerWorkflow.ps1 -DeplyEnvironment -Owner <org name> -Branch <name of your branch> -PersonalAccessToken (ConvertTo-SecureString -String "<personal access token generated from your personal profile>" -AsPlainText -Force)
 ```
-7. If the Deploy Azure Resources and Environment workflow is successful, we should create the cloudSwXtch appliance in the matchingengine resource group.
+7. If the Deploy Azure Resources and Environment workflow is successful, create a trial cloudSwXtch appliance in the matchingengine resource group.
+8. Now we are ready to kick off the CI process. Open Demo.CustomerOrder project and add some comments in Program.cs.
 
 ### Secrets
 | Name | Value |

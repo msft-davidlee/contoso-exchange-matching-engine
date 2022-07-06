@@ -7,6 +7,7 @@ using System.Text;
 
 namespace Demo.CustomerOrder
 {
+    // Add some comments here:
     internal class Program
     {
         static async Task Main(string[] args)
