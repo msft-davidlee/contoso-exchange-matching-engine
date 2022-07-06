@@ -47,7 +47,7 @@ $VMList | ForEach-Object {
             $AppNames = "fixmsgprocessor,matchingengine"
         }
              
-        az vm run-command invoke --resource-group $foundStorageResource.resourceGroup `
+        az vm run-command invoke --resource-group $matchingEngineResourceGroup `
             --scripts "Set-Content -Path C:\args.txt -Value '$AppNames' -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('$InstallAppScript'))" `
             --command-id RunPowerShellScript --name $VM
     
