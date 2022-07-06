@@ -1,13 +1,15 @@
 on: 
   push:
-    paths-ignore: 
-      - 'README.md'  
+    paths:
+      - '**/networking.yml'
+      - '**/networking.bicep'     
+      - '**/ResolveNetworkingResources.ps1'
   workflow_dispatch:
     inputs:
       environmentselector:
         description: 'Environment selector'     
         required: false
-        default: 'default'
+        default: 'dev'
 env:
   STACK_NAME_TAG: 'cntex-networking'
 
@@ -60,7 +62,7 @@ jobs:
         with:
           deploymentName: 'deploy-${{ needs.setup.outputs.build_env }}-${{ github.run_number }}'
           resourceGroupName: ${{ steps.resolve-shared-resources.outputs.resourceGroup }}
-          template: ./deployment/deploy.bicep
+          template: ./deployment/networking.bicep
           parameters: >            
             environment=${{ needs.setup.outputs.build_env }}
             prefix=${{ env.STACK_NAME_TAG }}
