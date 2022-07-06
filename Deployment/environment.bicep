@@ -80,6 +80,10 @@ resource nic1 'Microsoft.Network/networkInterfaces@2021-08-01' = [for i in range
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           primary: true
+          //Added a condition to make sure only trading VM nic should be associated with Public IP
+          publicIPAddress: ((i == 2) ? {
+            id: pip.id
+          } : null)          
           subnet: {
             id: subnetRef1
           }
@@ -109,6 +113,26 @@ resource nic2 'Microsoft.Network/networkInterfaces@2020-06-01' = [for i in range
 
   }
 }]
+
+var publicIPAllocationMethod = 'Dynamic'
+var publicIP = '${prefix}-pip'
+var publicIpSku = 'Basic'
+//Client VM associated public IP
+resource pip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
+  name: publicIP
+  location: location
+  tags: tags
+  zones: zones
+  sku: {
+    name: publicIpSku
+  }
+  properties: {
+    publicIPAllocationMethod: publicIPAllocationMethod
+    dnsSettings: {
+      domainNameLabel: prefix
+    }
+  }
+}
 
 resource ppg 'Microsoft.Compute/proximityPlacementGroups@2022-03-01' = {
   name: 'demoppg'

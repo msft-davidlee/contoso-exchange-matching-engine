@@ -57,13 +57,22 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 3. On your GitHub forked repo, go to settings, then Actions on the left blade, scroll down to the bottom and under Workflow permissions check the read and write permissions option.
 4. Push into your git remote repo to kick off the CI process. You will also notice the CD process might have kicked off. This is because this is needed to create the initial workflow that will appear in the workflow screen. 
 5. Check to make sure the workflow(s) completes successfully.
-6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen which will create the VMs. Use the following script and run from the root directory:
+6. Navigate to the keyvault in your shared resource resource group and add a secret named vmpassword. This would be the password you would use to login to your VMs. 
+7. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen which will create the VMs. Use the following script and run from the root directory:
 ```
 .\TriggerWorkflow.ps1 -DeplyEnvironment -Owner <org name> -Branch <name of your branch> -PersonalAccessToken (ConvertTo-SecureString -String "<personal access token generated from your personal profile>" -AsPlainText -Force)
 ```
-7. If the Deploy Azure Resources and Environment workflow is successful, create a trial cloudSwXtch appliance in the matchingengine resource group.
-8. Now we are ready to kick off the CI process. Open Demo.CustomerOrder project and add some comments in Program.cs.
-9. The Build, Test, Publish apps workflow should kick off.
+8. If the Deploy Azure Resources and Environment workflow is successful, create a trial cloudSwXtch appliance in the matchingengine resource group.
+9. Now we are ready to kick off the CI process. Open Demo.CustomerOrder project and add some comments in Program.cs.
+10. The Build, Test, Publish apps workflow should kick off.
+11. If the Build, Test, Publish apps workflow is successful, we can now enable JIT for the trading platform VM. Follow the link for more info: https://docs.microsoft.com/en-us/azure/defender-for-cloud/just-in-time-access-usage.
+    1. Launch the trading platform VM.
+    2. Click on Configuration tab.
+    3. Click Enable Just in time button.
+    4. Once enabled, a link should show up: Open Microsoft Defender for Cloud
+    5. Click on the link and request for access.
+    6. Select the Remote Desktop Port
+
 
 ### Secrets
 | Name | Value |
