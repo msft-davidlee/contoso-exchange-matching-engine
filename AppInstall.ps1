@@ -1,5 +1,7 @@
 param($InstallAppNames)
 
+$ErrorActionPreference = "Stop"
+
 if (!$InstallAppNames) {
     if (Test-Path "C:\args.txt") {
         $InstallAppNames = Get-Content "C:\args.txt"
@@ -8,8 +10,6 @@ if (!$InstallAppNames) {
         $InstallAppNames = "client1,client2,fixmsgprocessor,matchingengine,marketdata1,marketdata2"
     }    
 }
-
-$ErrorActionPreference = "Stop"
 
 if (!(Test-Path "C:\Program Files\SwXtch.io\Swxtch-xNIC")) {
     Write-Host "Switch IO..."
