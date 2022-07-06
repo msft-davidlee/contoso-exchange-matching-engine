@@ -17,6 +17,7 @@ if (!(Test-Path "C:\Program Files\SwXtch.io\Swxtch-xNIC")) {
 }
 
 $DownloadSas = "[DownloadSas]"
+$CertsSas = "[CertsSas]"
 
 $workDir = "C:\dev"
 if (!(Test-Path $workDir)) {
@@ -96,7 +97,7 @@ if ($state -ne "Installed") {
     Stop-Service sshd
 
     $PubKeyFile = "pub"
-    $sas = $DownloadSas.Replace("certs?", "certs/$PubKeyFile.txt?")
+    $sas = $CertsSas.Replace("certs?", "certs/$PubKeyFile.txt?")
     Invoke-WebRequest -Uri $sas -OutFile "$PubKeyFile.txt" -UseBasicParsing
     Copy-Item -Path "$PubKeyFile.txt" -Destination "C:\ProgramData\ssh\administrators_authorized_keys" -Force
 

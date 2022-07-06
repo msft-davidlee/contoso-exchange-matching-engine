@@ -44,6 +44,9 @@ $AccountWriteSas = (az storage container generate-sas -n $ContainerName --accoun
 $StorageAccountReadSas = "https://$AccountName.blob.core.windows.net/$ContainerName`?$AccountReadSas"
 $StorageAccountWriteSas = "https://$AccountName.blob.core.windows.net/$ContainerName`?$AccountWriteSas"
 
+$CertsReadSas = (az storage container generate-sas -n "certs" --account-name $AccountName --account-key $AccountKey --permissions rl --expiry $end --start $start --https-only | ConvertFrom-Json)
+$StorageAccountCertsReadSas = "https://$AccountName.blob.core.windows.net/certs?$CertsReadSas"
+
 #Section: Self discover App Insights
 $foundInsightsResource = ($matchingEngineResources | Where-Object { $_.type -eq "microsoft.insights/components" })[0]
 $insightsResource = az resource show --name $foundInsightsResource.name --resource-group $foundInsightsResource.resourceGroup --resource-type "microsoft.insights/components" | ConvertFrom-Json
@@ -184,6 +187,7 @@ if ($StorageAccountWriteSas -and $StorageAccountReadSas) {
     
     $content = Get-Content -Path "../AppInstall.ps1"    
     $content = $content.Replace("[DownloadSas]", $StorageAccountReadSas)
+    $content = $content.Replace("[CertsSas]", $StorageAccountCertsReadSas)
     $content = $content.Replace("[SwitchIOName]", $SwitchIOName)
     Set-Content -Path "AppInstall.ps1" -Value $content
 
