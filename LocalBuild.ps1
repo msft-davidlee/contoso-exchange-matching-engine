@@ -1,30 +1,17 @@
 param([string]$BuildEnvironment)
 
-function GetResource([string]$stackId, [string]$stackEnvironment) {
-    $platformRes = (az resource list --tag stack-name=$stackName | ConvertFrom-Json)
-    if (!$platformRes) {
-        throw "Unable to find eligible $stackId resource!"
-    }
-    if ($platformRes.Length -eq 0) {
-        throw "Unable to find 'ANY' eligible $stackId resource!"
-    }
-                
-    $res = ($platformRes | Where-Object { $_.tags.'stack-environment' -eq $stackEnvironment })
-    if (!$res) {
-        throw "Unable to find resource by environment!"
-    }
-                
-    return $res
-}
-
 $ErrorActionPreference = "Stop"
 
 $groups = az group list --tag stack-environment=$BUILD_ENV | ConvertFrom-Json
-$sharedResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-shared-services' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$sharedResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-shared-services' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
 $sharedResources = az resource list --resource-group $sharedResourceGroup | ConvertFrom-Json
 
-$matchingEngineResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-matchingengine' -and $_.tags.'stack-environment' -eq $BUILD_ENV }).name
+$matchingEngineResourceGroup = ($groups | Where-Object { $_.tags.'stack-name' -eq 'cntex-matchingengine' -and $_.tags.'stack-environment' -eq $BuildEnvironment }).name
 $matchingEngineResources = az resource list --resource-group $matchingEngineResourceGroup | ConvertFrom-Json
+if ($matchingEngineResources.Length -eq 0) {
+    Write-Host "Matching engine resource group is not yet deployed."
+    return
+}
 
 # Section: Self discover Switch IO
 $switches = az resource list --resource-type "Microsoft.Solutions/applications" --resource-group $matchingEngineResourceGroup | ConvertFrom-Json
