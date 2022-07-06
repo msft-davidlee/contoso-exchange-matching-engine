@@ -6,12 +6,20 @@ The information contained in this README.md file and any accompanying materials 
 ![CD Apps workflow](https://github.com/msft-davidlee/contoso-exchange-matching-engine/actions/workflows/cdapps.yml/badge.svg)
 
 # Introduction
-This repo contains a Exchange Matching engine demo on New Single Order made via FIX protocol with multicast broadcast to Market Data Recipients running on Azure VMs (Infrastruture-as-a-service). It is build to suit our specific use case today around New Single Order (buy and sell) via FIX 4.4 protocol and there are 2 market data recipients are listening for the executed order over UDP multicast. The architecture of the demo is NOT representative of how a trading platform should be designed and run on Azure and does not speak to how we would recommand a cloud native architecture
+This repo contains a Exchange Matching engine demo on New Single Order made via FIX protocol with multicast broadcast to Market Data Recipients running on Azure VMs (Infrastruture-as-a-service). It is build to suit our specific use case today around New Single Order (buy and sell) via FIX 4.4 protocol and there are 2 market data recipients are listening for the executed order over UDP multicast. The architecture of the demo is NOT representative of how an Exchange Matching engine should be designed and run on Azure and does not speak to how we would recommand a cloud native architecture. Instead, it is designed to speak to key topics of DevOps CI/CD practices, and Operational monitoring & reporting, which are aligned with specific Azure and GitHub services.
 
 ![Architecture](/docs/TradingPlatformDemo.png)
 
+## Considerations
+The following are considerations as we speak about the Architecture.
+
+1. The ReadMe contains key information of whether GitHub workflows are healthy. This helps Developers and anyone who is interested to learn more about the stability of the codebase immediately.
+2. Under references, we can see that we are using a few open source libraries. As such it is key for us to consider the security implications. We advocate for any software development to shift left and that means leveraging the code scan and other capabilities. For example, one can easily review security alerts on the security tab of the GitHub Repo.
+3. There are multiple workflows for CI and CD purposes as well as for code scanning which ensures we are really thinking about every-as-code/ infra-as-code. The CI is going to be executed on every push and the 2 CDs are manually triggered.
+4. The Architecture consist of a few VMs which consist of a buyer/seller clients, the trading platform which represents the mock exchange which host a FIX endpoint and matching engine, a managed appliance - cloudSwXtch for doing multicast broadcast and clients that subscribe to the multicast broadcast.
+
 # Getting Started
-As a developer, you can run build this solution locally with the following commands within the root directory. Configure your solution to debug the following projects. Note that you wouldn't be able to debug the MarketDataRecipient unless you have the Multicast appliance configured.
+As a developer, you can run build this solution locally with Visual Studio 2022 and above. Configure your solution to debug the following projects. Note that you wouldn't be able to debug the MarketDataRecipient unless you have the Multicast appliance configured. The yaml and powershell scripts can be configured by VS Code.
 
 * Demo.CustomerOrder
 * Demo.FIXMessageProcessor
@@ -114,6 +122,10 @@ sim 1 15 10
 ```
 5. You can review Application Insights which will show the Application Map and be able to drill down on each order.
 6. You should also take note of the Market Data Recipients where when a trade is made, it will be the receiver of the broadcast event.
+
+# Tech Stack
+* .NET 6
+* nuget packages for dependency management
 
 # References
 The following are libraries used in this repo.
