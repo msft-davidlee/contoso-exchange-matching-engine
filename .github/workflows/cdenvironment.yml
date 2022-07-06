@@ -2,6 +2,8 @@ name: Deploy Azure Resources and Environment
 on:
   workflow_dispatch:
   push:
+    paths-ignore:
+      - 'README.md'  
 jobs:
   setup:
     name: Choose Secrets Environment Job

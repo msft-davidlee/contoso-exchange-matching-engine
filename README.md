@@ -6,7 +6,7 @@ The information contained in this README.md file and any accompanying materials 
 ![CD Apps workflow](/contoso-exchange-matching-engine/actions/workflows/cdapps.yml/badge.svg)
 
 # Introduction
-This repo contains a Matching engine demo on New Single Order made via FIX protocol with multicast broadcast to Market Data Recipients running on Azure VMs (Infrastruture-as-a-service). It is build to suit our specific use case today around New Single Order (buy and sell) via FIX 4.4 protocol and there are 2 market data recipients are listening for the executed order over UDP multicast. The architecture of the demo is NOT representative of how a trading platform should be designed and run on Azure and does not speak to how we would recommand a cloud native architecture
+This repo contains a Exchange Matching engine demo on New Single Order made via FIX protocol with multicast broadcast to Market Data Recipients running on Azure VMs (Infrastruture-as-a-service). It is build to suit our specific use case today around New Single Order (buy and sell) via FIX 4.4 protocol and there are 2 market data recipients are listening for the executed order over UDP multicast. The architecture of the demo is NOT representative of how a trading platform should be designed and run on Azure and does not speak to how we would recommand a cloud native architecture
 
 ![Architecture](/docs/TradingPlatformDemo.png)
 
@@ -28,7 +28,25 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 3. A GitHub account as we are planning to use GitHub Actions to drive CI/CD with it.
 
 ## Steps
-1. As an Azure Subscription Owner, we will need to configure our Azure Subscription with [Azure Blueprint](BLUEPRINT.md) to create the necessary resources and resource groups. This will also create the right tags on your resources and resource groups which our scripts used in CI/CD rely on.
+1. As an Azure Subscription Owner, we will need to configure our Azure Subscription with Azure Blueprint to create the necessary resources and resource groups. This will also create the right tags on your resources and resource groups which our scripts used in CI/CD rely on.
+    1. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) this git repo.
+    2. Next, we will execute a blueprint deployment to create our environment which consists of shared resources, networking and application resource groups and take care of RBAC. The first step is to create a Service Principal which is assigned into each resource group. Take note of the tenant Id, appId and password.
+    ```
+    az ad sp create-for-rbac -n "Contoso Exchange"
+    ```
+    3. We need to get the Object Id for the Service principal we have created. This is used as input to our Blueprint deployment later.
+    ```
+    (az ad sp show --id <appId from the previous command> | ConvertFrom-Json).id
+    ```
+    4. We need to get the Object Id for our user. This is used as input to our Blueprint deployment later so we can grant oursleves access to shared resources such as Azure Key Vault.
+    ```
+    (az ad signed-in-user show | ConvertFrom-Json).id
+    ```
+    5. Clone this git repo locally and create a new branch.
+    6. We should cd into the Governance directory and execute our blueprint.bicep with the following command. Note that we are just building out two environments, one for dev and one for prod.
+    ```
+    DeployBlueprint.ps1 -BUILD_ENV dev -SVC_PRINCIPAL_ID <Object Id for Contoso Exchange GitHub Service Principal> -MY_PRINCIPAL_ID <Object Id for your user>
+    DeployBlueprint.ps1 -BUILD_ENV prod -SVC_PRINCIPAL_ID <Object Id for Contoso Exchange GitHub Service Principal> -MY_PRINCIPAL_ID <Object Id for your us
 2. If you check your local repo, it contains several yaml files located in the Deployment directory and they rely on GitHub Secrets for accessing the Service Principal which is assigned access to the Azure Subscription from the previous step. From a code scanning perspective, the workflows/codeql-analysis.yml contains the code language known as Code QL that specify the scanning parameters such as language and scanning triggers. 
     1. Create an environment called dev and prod in GitHub secrets. 
     2. Create the following secrets as shown in thr secrets section below which are populate with some of the same values as in the shared Azure Key Vault.
@@ -40,7 +58,6 @@ Follow the steps below to create the demo environment in your own Azure Subscrip
 4. Push into your git remote repo to kick off the CI process. You will also notice the CD process might have kicked off. This is because this is needed to create the initial workflow that will appear in the workflow screen. 
 5. Check to make sure the workflow(s) completes successfully.
 6. Now, we can trigger the Deploy Azure Resources and Environment workflow from the workflow screen.
-
 
 ### Secrets
 | Name | Value |
